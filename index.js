@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT||5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 //middleware are here 
 
@@ -30,6 +30,7 @@ async function run() {
     await client.connect();
    
   const addequipmentcollection = client.db('addequipDB').collection('addeqipment');
+  const usercollection = client.db('addequipDB').collection('users');
    
 
    app.get('/addequipment',async(req,res)=>{
@@ -38,12 +39,54 @@ async function run() {
     res.send(result);
    })
 
+    app.get('/addequipment/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await addequipmentcollection.findOne(query)
+      res.send(result);
+    })
+
+   
+
 
    app.post('/addequipment',async(req,res)=>{
     const addnewquipment = req.body;
     console.log(addnewquipment);
     const result = await addequipmentcollection.insertOne(addnewquipment);
     res.send(result);
+   })
+
+   app.put('/addequipment/:id',async(req,res)=>{
+    const id = req.params.id;
+    const filter = {_id:new ObjectId(id)}
+    const options ={upsert:true};
+    const updatedequipment = req.body;
+    const equipment = {
+      $set:{
+        coffeename:updatedequipment.coffeename,
+        Suppliername:updatedequipment.Suppliername,
+        tasteprofile:updatedequipment.tasteprofile,
+        category:updatedequipment.category,
+        Details:updatedequipment.Details,
+        PhotoURL:updatedequipment.PhotoURL
+      }
+    }
+    const result = await addequipmentcollection.updateOne(filter,equipment,options)
+    res.send(result);
+   })
+
+  app.delete('/addequipment/:id',async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await addequipmentcollection.deleteOne(query)
+    res.send(result);
+  })
+   //  users releted apies here 
+   app.post('/users',async(req,res)=>{
+    const newuser = req.body;
+    const result = await usercollection.insertOne(newuser);
+    res.send(result);
+
    })
 
     // Send a ping to confirm a successful connection
